@@ -21,6 +21,7 @@
 body{
     background:#edf2f7;
     padding:15px;
+    padding-bottom:60px;
 }
 
 .top{
@@ -74,17 +75,9 @@ button{
     cursor:pointer;
 }
 
-.generate{
-    background:#2ac66f;
-}
-
-.print{
-    background:#4e73df;
-}
-
-.reload{
-    background:#ff8b3e;
-}
+.generate{ background:#2ac66f; }
+.print{ background:#4e73df; }
+.reload{ background:#ff8b3e; }
 
 .summary{
     display:grid;
@@ -153,13 +146,8 @@ tr:nth-child(even){
     background:#fafcff;
 }
 
-.green{
-    background:#c8f7d2;
-}
-
-.purple{
-    background:#f3d4f8;
-}
+.green{ background:#c8f7d2; }
+.purple{ background:#f3d4f8; }
 
 .status{
     margin-top:10px;
@@ -167,16 +155,34 @@ tr:nth-child(even){
     font-weight:bold;
 }
 
-@media print{
+/* FOOTER */
+.footer{
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    text-align:center;
+    padding:8px;
+    font-size:12px;
+    background:#ffffff;
+    border-top:1px solid #dbe2ec;
+    color:#444;
+}
 
+/* PRINT */
+@media print{
     .top{
         display:none;
     }
 
     body{
         background:white;
+        padding-bottom:0;
     }
 
+    .footer{
+        display:none;
+    }
 }
 
 </style>
@@ -212,23 +218,13 @@ tr:nth-child(even){
 
 <div class="buttons">
 
-<button class="generate" onclick="filterData()">
-Generate Report
-</button>
-
-<button class="print" onclick="window.print()">
-Print / PDF
-</button>
-
-<button class="reload" onclick="reloadReport()">
-Reload
-</button>
+<button class="generate" onclick="filterData()">Generate Report</button>
+<button class="print" onclick="window.print()">Print / PDF</button>
+<button class="reload" onclick="reloadReport()">Reload</button>
 
 </div>
 
-<div class="status" id="status">
-Waiting for CSV Folder...
-</div>
+<div class="status" id="status">Waiting for CSV Folder...</div>
 
 <div class="summary">
 
@@ -268,13 +264,15 @@ Lot Wise Summary Report
 </div>
 
 <table>
-
 <thead id="head"></thead>
-
 <tbody id="body"></tbody>
-
 </table>
 
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    Developed by <b>Sagar Khunt</b> | Contact: +91 7600171393
 </div>
 
 <script>
@@ -306,9 +304,7 @@ document.getElementById('folder')
             splitData[0];
 
         if(!grouped[kapan]){
-
             grouped[kapan] = [];
-
         }
 
         grouped[kapan].push(file);
@@ -342,9 +338,7 @@ document.getElementById('folder')
 
 document.getElementById('kapan')
 .addEventListener('change', function(){
-
     loadKapan(this.value);
-
 });
 
 async function loadKapan(kapan){
@@ -353,11 +347,7 @@ async function loadKapan(kapan){
 
     let files = grouped[kapan];
 
-    if(!files){
-
-        return;
-
-    }
+    if(!files) return;
 
     for(let file of files){
 
@@ -370,46 +360,19 @@ async function loadKapan(kapan){
 
                 complete:function(result){
 
-                    let rows =
-                        result.data;
+                    let rows = result.data;
 
                     let fileName =
                         file.name.replace(/\.[^/.]+$/, "");
 
-                    let splitData =
-                        fileName.split('-');
+                    let splitData = fileName.split('-');
 
-                    let kapanNo =
-                        splitData[0];
-
-                    let pktNo =
-                        splitData[1];
-
-                    /*
-                    MK PCS =
-                    HIGHEST NUMBER IN PartName
-                    */
+                    let kapanNo = splitData[0];
+                    let pktNo = splitData[1];
 
                     let mkPcs = 0;
-
-                    /*
-                    MK CTS =
-                    TOTAL WT
-                    */
-
                     let mkCts = 0;
-
-                    /*
-                    EPC =
-                    TOTAL PW
-                    */
-
                     let epc = 0;
-
-                    /*
-                    ROUGH WEIGHT
-                    */
-
                     let roughWt = 0;
 
                     rows.forEach(r => {
@@ -417,36 +380,19 @@ async function loadKapan(kapan){
                         let part =
                             parseInt(r['PartName']) || 0;
 
-                        if(part > mkPcs){
+                        if(part > mkPcs) mkPcs = part;
 
-                            mkPcs = part;
-
-                        }
-
-                        mkCts +=
-                            parseFloat(r['WT']) || 0;
-
-                        epc +=
-                            parseFloat(r['Pw']) || 0;
+                        mkCts += parseFloat(r['WT']) || 0;
+                        epc += parseFloat(r['Pw']) || 0;
 
                         if(roughWt === 0){
-
-                            roughWt =
-                                parseFloat(r['Rough Weight']) || 0;
+                            roughWt = parseFloat(r['Rough Weight']) || 0;
                         }
 
                     });
 
-                    /*
-                    RTO%
-                    */
-
                     let rto =
-                        roughWt > 0
-                        ?
-                        ((epc * 100) / roughWt)
-                        :
-                        0;
+                        roughWt > 0 ? ((epc * 100) / roughWt) : 0;
 
                     currentData.push({
 
@@ -474,58 +420,33 @@ async function loadKapan(kapan){
     }
 
     makeTable(currentData);
-
     makeSummary(currentData);
 
     document.getElementById('status')
-    .innerHTML =
-        kapan +
-        ' Report Generated';
+    .innerHTML = kapan + ' Report Generated';
 
 }
 
 function makeTable(data){
 
-    let head =
-        document.getElementById('head');
-
-    let body =
-        document.getElementById('body');
+    let head = document.getElementById('head');
+    let body = document.getElementById('body');
 
     head.innerHTML = '';
     body.innerHTML = '';
 
-    if(data.length === 0){
-
-        return;
-
-    }
+    if(data.length === 0) return;
 
     let headers = [
-
-        'Kpn No',
-        'Pkt No',
-        'Actual Wt',
-        'RO.WT',
-        'Mk.Pcs',
-        'MK Cts',
-        'E P C',
-        'E.P.%',
-        'Act RtoP%',
-        'R TO P%'
-
+        'Kpn No','Pkt No','Actual Wt','RO.WT',
+        'Mk.Pcs','MK Cts','E P C','E.P.%','Act RtoP%','R TO P%'
     ];
 
     let hr = '<tr>';
 
-    headers.forEach(h => {
-
-        hr += `<th>${h}</th>`;
-
-    });
+    headers.forEach(h => hr += `<th>${h}</th>`);
 
     hr += '</tr>';
-
     head.innerHTML = hr;
 
     data.forEach(row => {
@@ -536,31 +457,13 @@ function makeTable(data){
 
             let cls = '';
 
-            if(
-                h.toLowerCase().includes('rto')
-            ){
+            if(h.toLowerCase().includes('rto')) cls = 'green';
+            if(h.includes('%')) cls = 'purple';
 
-                cls = 'green';
-
-            }
-
-            if(
-                h.includes('%')
-            ){
-
-                cls = 'purple';
-
-            }
-
-            tr +=
-                `<td class="${cls}">` +
-                (row[h] || '') +
-                `</td>`;
-
+            tr += `<td class="${cls}">${row[h] || ''}</td>`;
         });
 
         tr += '</tr>';
-
         body.innerHTML += tr;
 
     });
@@ -575,103 +478,49 @@ function makeSummary(data){
 
     data.forEach(r => {
 
-        totalWeight +=
-            parseFloat(
-                r['Actual Wt']
-            ) || 0;
-
-        totalMk +=
-            parseFloat(
-                r['Mk.Pcs']
-            ) || 0;
-
-        totalEpc +=
-            parseFloat(
-                r['E P C']
-            ) || 0;
+        totalWeight += parseFloat(r['Actual Wt']) || 0;
+        totalMk += parseFloat(r['Mk.Pcs']) || 0;
+        totalEpc += parseFloat(r['E P C']) || 0;
 
     });
 
-    let totalRto = 0;
+    let totalRto = totalWeight > 0 ? (totalEpc * 100 / totalWeight) : 0;
 
-    if(totalWeight > 0){
-
-        totalRto =
-            (totalEpc * 100)
-            /
-            totalWeight;
-
-    }
-
-    document.getElementById('pcs')
-    .innerHTML =
-        data.length;
-
-    document.getElementById('rows')
-    .innerHTML =
-        totalMk;
-
-    document.getElementById('epcTotal')
-    .innerHTML =
-        totalEpc.toFixed(3);
-
-    document.getElementById('wt')
-    .innerHTML =
-        totalWeight.toFixed(3);
-
-    document.getElementById('rto')
-    .innerHTML =
-        totalRto.toFixed(2);
+    document.getElementById('pcs').innerHTML = data.length;
+    document.getElementById('rows').innerHTML = totalMk;
+    document.getElementById('epcTotal').innerHTML = totalEpc.toFixed(3);
+    document.getElementById('wt').innerHTML = totalWeight.toFixed(3);
+    document.getElementById('rto').innerHTML = totalRto.toFixed(2);
 
 }
 
 function filterData(){
 
     let text =
-        document.getElementById('search')
-        .value
-        .toLowerCase();
+        document.getElementById('search').value.toLowerCase();
 
     if(text === ''){
-
         makeTable(currentData);
         makeSummary(currentData);
-
         return;
-
     }
 
-    let filtered =
-        currentData.filter(r => {
-
-            return Object.values(r)
-            .some(v =>
-
-                String(v)
-                .toLowerCase()
-                .includes(text)
-
-            );
-
-        });
+    let filtered = currentData.filter(r =>
+        Object.values(r).some(v =>
+            String(v).toLowerCase().includes(text)
+        )
+    );
 
     makeTable(filtered);
-
     makeSummary(filtered);
 
 }
 
 function reloadReport(){
 
-    let kapan =
-        document.getElementById('kapan')
-        .value;
+    let kapan = document.getElementById('kapan').value;
 
-    if(kapan){
-
-        loadKapan(kapan);
-
-    }
+    if(kapan) loadKapan(kapan);
 
 }
 
